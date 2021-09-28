@@ -16,81 +16,81 @@ import com.google.firebase.ktx.Firebase
 
 class RegisterActivity : AppCompatActivity() {
 
-    lateinit var mAuth: FirebaseAuth
-    lateinit var user: FirebaseUser
+    lateinit var myAuth: FirebaseAuth
     lateinit var edtEmail: EditText
     lateinit var edtPassword: EditText
-    lateinit var btnRegister: Button
+    lateinit var btnLogin: Button
     lateinit var errMsg: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
 
-        edtEmail = findViewById<EditText>(R.id.editEmail)
-        edtPassword = findViewById<EditText>(R.id.editPassword)
-        btnRegister = findViewById<Button>(R.id.btnSignUp)
-        errMsg = findViewById<TextView>(R.id.regErrMsg)
-
-        mAuth = Firebase.auth
-        if(mAuth.currentUser != null) {
-            user = mAuth.currentUser!!
-        }
+        edtEmail = findViewById(R.id.editEmail)
+        edtPassword = findViewById(R.id.editPassword)
+        btnLogin = findViewById(R.id.btnSignUp)
+        errMsg = findViewById(R.id.regErrMsg)
+        myAuth = Firebase.auth
 
         if(intent.getStringExtra("message") != null){
-            errMsg.text = intent.getStringExtra("message")
+            displayErrorMessage(intent.getStringExtra("message")!!)
         }
+
         if(intent.getStringExtra("email") != null){
             edtEmail.text.replace(0, edtEmail.text.length, intent.getStringExtra("email"))
         }
 
-        btnRegister.setOnClickListener {
-            var email = edtEmail.text.toString()
-            var password = edtPassword.text.toString()
-            errMsg.text = ""
+        btnLogin.setOnClickListener {
+            val email = edtEmail.text.toString()
+            val password = edtPassword.text.toString()
 
+            displayErrorMessage("")
             if(emailIsValid(email) && passwordIsValid(password)) {
-                mAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(this) { task ->
-                        if (task.isSuccessful) {
-                            Log.d(TAG, "createUserWithEmail:success")
-                            val user = mAuth.currentUser
-                            navigateToMainActivity(user)
-                        } else {
-                            // If registration fails, go to sign up.
-                            navigateToLoginActivity(email, password)
-                        }
-                    }
+                loginWithUserNameAndPassword(email, password)
             } else {
-                Log.w(TAG, "createUserWithEmail:failure")
-                Toast.makeText(
-                    baseContext, "Authentication failed.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                updateUI("Either email or password is invalid.")
+                displayErrorMessage("Invalid Email or Password. Please try again.")
             }
-
-
         }
-    }
-
-    private fun emailIsValid(email: String): Boolean {
-        return true
-    }
-
-    private fun passwordIsValid(password: String): Boolean {
-        return password.length >= 6
     }
 
     public override fun onStart() {
         super.onStart()
-        if(mAuth.currentUser != null) {
-            user = mAuth.currentUser!!
-            updateUI(user)
-            navigateToMainActivity(user)
+        if(myAuth.currentUser != null) {
+            updateUI("Authentication Successful!")
+            navigateToMainActivity(myAuth.currentUser)
         }
     }
 
+    private fun loginWithUserNameAndPassword(email: String, password: String) {
+        myAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this){
+                task ->
+            if (task.isSuccessful) {
+                logError("createUserWithEmail:success")
+                navigateToMainActivity(myAuth.currentUser)
+            } else {
+                createLoginWithUserAndPassword(email, password)
+            }
+        }
+    }
+
+    private fun createLoginWithUserAndPassword(email: String, password: String) {
+        myAuth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    logError("createUserWithEmail:success")
+                    updateUI("User created successfully!")
+                    navigateToMainActivity(myAuth.currentUser)
+                } else {
+                    logError("createUserWithEmail:failure")
+                    updateUI("Login Failed: try again")
+                    displayErrorMessage("Either your password is wrong or you are trying to create a new user with an email that already exists in the system.")
+                }
+            }
+    }
+
     private fun navigateToMainActivity(user: FirebaseUser?) {
+        displayErrorMessage("")
         if (user != null) {
             val intent = Intent(this, MainActivity::class.java).apply {
                 putExtra("email", user.email)
@@ -104,18 +104,25 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    private fun navigateToLoginActivity(email: String, password: String) {
-        val intent = Intent(this, LoginActivity::class.java).apply {
-            putExtra("email", email)
-            putExtra("password", password)
-        }
-        startActivity(intent)
-            finish()
+    private fun emailIsValid(email: String): Boolean {
+        // TODO: added any validity checks for the email address
+        return true
     }
 
-    private fun updateUI(user: Any?): Any {
-        Toast.makeText(baseContext, "Authentication Successful!",
+    private fun passwordIsValid(password: String): Boolean {
+        return password.length >= 6
+    }
+
+    private fun logError(message: String){
+        Log.w(TAG, message)
+    }
+
+    private fun updateUI(message: String){
+        Toast.makeText(baseContext, message,
             Toast.LENGTH_SHORT).show()
-        return ""
+    }
+
+    private fun displayErrorMessage(message: String) {
+        errMsg.text = message
     }
 }
