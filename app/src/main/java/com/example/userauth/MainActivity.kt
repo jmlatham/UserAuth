@@ -23,8 +23,16 @@ class MainActivity : AppCompatActivity() {
         val logOutButton = findViewById<Button>(R.id.btnLogout)
         logOutButton.setOnClickListener {
             myAuth.signOut()
-            startActivity(Intent(this, RegisterActivity::class.java))
-            finish()
+            navigateToRegisterActivity("Logged out successfully")
         }
+    }
+
+    private fun navigateToRegisterActivity(message: String) {
+        val intent = Intent(this, RegisterActivity::class.java).apply {
+            putExtra("message", message)
+            putExtra("email", intent.getStringExtra("email"))
+        }
+        startActivity(intent)
+        finish()
     }
 }
