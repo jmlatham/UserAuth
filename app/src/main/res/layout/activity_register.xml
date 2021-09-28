@@ -12,12 +12,14 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="79dp"
         android:ems="10"
-        android:hint="email address"
+        android:hint="@string/email_address"
         android:inputType="none|textEmailAddress"
         android:minHeight="48dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="TextContrastCheck"
+        android:importantForAutofill="no" />
 
     <EditText
         android:id="@+id/editPassword"
@@ -25,19 +27,21 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="51dp"
         android:ems="10"
-        android:hint="password"
+        android:hint="@string/password"
         android:inputType="none|textPassword"
         android:minHeight="48dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editEmail" />
+        app:layout_constraintTop_toBottomOf="@+id/editEmail"
+        tools:ignore="TextContrastCheck"
+        android:importantForAutofill="no" />
 
     <Button
         android:id="@+id/btnSignUp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="44dp"
-        android:text="Sign Up"
+        android:text="@string/sign_in_up"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editPassword" />
@@ -46,7 +50,7 @@
         android:id="@+id/regErrMsg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="53dp"
+        android:layout_marginTop="10dp"
         android:textColor="#F44336"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
