@@ -1,18 +1,25 @@
 package com.example.userauth
 
+import android.app.Activity
 import android.content.ContentValues.TAG
 import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
+import android.util.Patterns
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import de.hdodenhof.circleimageview.CircleImageView
+import java.io.IOException
 
 class RegisterActivity : AppCompatActivity() {
 
@@ -21,6 +28,8 @@ class RegisterActivity : AppCompatActivity() {
     lateinit var edtPassword: EditText
     lateinit var btnLogin: Button
     lateinit var errMsg: TextView
+    private val PICK_IMAGE_REQUEST = 888
+    lateinit var filePath: Uri
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +60,11 @@ class RegisterActivity : AppCompatActivity() {
                 updateUI("Either email or password is invalid.")
                 displayErrorMessage("Invalid Email or Password. Please try again.")
             }
+        }
+
+        val imgProfile = findViewById<CircleImageView>(R.id.imgProfile)
+        imgProfile.setOnClickListener{
+            showImagePicker()
         }
     }
 
@@ -105,8 +119,7 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun emailIsValid(email: String): Boolean {
-        // TODO: added any validity checks for the email address
-        return true
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
     private fun passwordIsValid(password: String): Boolean {
@@ -124,5 +137,43 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun displayErrorMessage(message: String) {
         errMsg.text = message
+    }
+    var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            // There are no request codes
+            val data: Intent? = result.data
+
+//            doSomeOperations()
+        }
+    }
+
+    private fun showImagePicker(){
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE, )
+        intent.setType("image/*")
+        intent.setAction(Intent.ACTION_GET_CONTENT)
+//        resultLauncher.launch(intent)
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST)
+        TODO("refactor to use un-deprecated code")
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        System.out.println("User Profile is selected")
+        if(requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null){
+            filePath = data.getData()!!
+            try {
+                val bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), filePath)
+            } catch(e: IOException){
+                e.printStackTrace()
+                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+            }
+            uploadImg()
+        }
+    }
+
+    private fun uploadImg() {
+        if (filePath != null){
+            TODO("Use Firebase Storage to upload the file")
+        }
     }
 }
