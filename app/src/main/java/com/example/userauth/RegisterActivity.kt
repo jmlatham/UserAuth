@@ -17,7 +17,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.ktx.storage
 import de.hdodenhof.circleimageview.CircleImageView
 import java.io.IOException
 
@@ -30,6 +35,9 @@ class RegisterActivity : AppCompatActivity() {
     lateinit var errMsg: TextView
     private val PICK_IMAGE_REQUEST = 888
     lateinit var filePath: Uri
+    lateinit var myStorage: FirebaseStorage
+    lateinit var myStorageRef: StorageReference
+    lateinit var myDatabase: FirebaseDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +48,10 @@ class RegisterActivity : AppCompatActivity() {
         btnLogin = findViewById(R.id.btnSignUp)
         errMsg = findViewById(R.id.regErrMsg)
         myAuth = Firebase.auth
+//        var mStorageRef = storage.reference
+        myStorage = Firebase.storage
+        myStorageRef = myStorage.reference
+        myDatabase = Firebase.database
 
         if(intent.getStringExtra("message") != null){
             displayErrorMessage(intent.getStringExtra("message")!!)
@@ -172,8 +184,32 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun uploadImg() {
+//        TODO("Use Firebase Storage to upload the file")
         if (filePath != null){
-            TODO("Use Firebase Storage to upload the file")
+            val myRef = myStorageRef.child("image/" + filePath.getLastPathSegment())
+            myRef.putFile(filePath)
+                .addOnSuccessListener { taskSnapshot ->
+                    val result = taskSnapshot.storage.downloadUrl
+                    result.addOnSuccessListener { uri ->
+                        val imageUrl = uri.toString()
+                        Toast.makeText(this, "uploaded: %s".format(imageUrl), Toast.LENGTH_SHORT).show()
+                    }.addOnFailureListener{ exception ->
+                        Toast.makeText(this, "downloadUrl failed: s%".format(exception.toString()), Toast.LENGTH_SHORT).show()
+                    }
+                }.addOnFailureListener { exception ->
+                    Toast.makeText(this, "putFile failed: s%".format(exception.toString()), Toast.LENGTH_SHORT).show()
+                }
+//                .addOnSuccessListener(OnSuccessListener<UploadTask.TaskSnapshot>(){
+//                    override onSuccess(UploadTask.TaskSnapshot tasksnapshot) {
+//                        Task<Uri> result = tasksnapshot.getStorage().getDownloadUrl()
+//                        result.addOnSuccessListener(OnSuccessListener<Uri>(){
+//                            onSuccess(Uri uri){
+//                                val imageUrl = uri.toString()
+//                                Toast.makeText(getApplicationContext(), "uploaded", Toast.LENGTH_SHORT).show()
+//                            }
+//                        })
+//                    }
+//                })
         }
     }
 }
